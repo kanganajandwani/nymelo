@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#171327" />
+<title>Nymelo — Your name, your melody</title>
+<style>
+  :root { --ink:#f8f5ff; --muted:#b8b0d0; --bg:#171327; --panel:#211c39; --line:rgba(255,255,255,.12); --pink:#ff9fc8; --lav:#b9a7ff; --mint:#9ce8d4; --yellow:#ffd98a; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; font-family:Inter,ui-rounded,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); background:radial-gradient(ellipse at 15% 0%,#3a2858 0%,transparent 38%),radial-gradient(ellipse at 95% 30%,#263c58 0%,transparent 32%),var(--bg); display:flex; justify-content:center; padding:28px 16px 42px; }
+  .app { width:min(100%,760px); }
+  .top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:42px; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:-.04em; font-size:1.2rem; }
+  .logo { width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--pink),var(--lav));color:#20172f;font-size:20px;box-shadow:0 8px 28px #ff9fc833; }
+  .tag { border:1px solid var(--line); border-radius:999px; padding:8px 12px; color:var(--muted); font-size:.75rem; }
+  .hero { text-align:center; margin:0 auto 28px; }
+  .eyebrow { color:var(--mint); text-transform:uppercase; letter-spacing:.18em; font-size:.72rem; font-weight:800; }
+  h1 { margin:12px 0 10px; font-size:clamp(2.7rem,8vw,5.2rem); letter-spacing:-.075em; line-height:.98; }
+  h1 span { background:linear-gradient(100deg,var(--pink),var(--lav) 55%,var(--mint)); -webkit-background-clip:text;background-clip:text;color:transparent; }
+  .sub { color:var(--muted); line-height:1.6; max-width:480px; margin:0 auto; font-size:1rem; }
+  .card { border:1px solid var(--line); background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.025)); box-shadow:0 24px 70px #08061355; border-radius:26px; padding:clamp(18px,4vw,30px); }
+  label { display:block; color:#ddd6f4; font-size:.83rem; font-weight:700; margin-bottom:9px; }
+  .entry { display:flex; gap:10px; }
+  input { min-width:0; flex:1; border:1px solid #5d527e; background:#171329; border-radius:14px; padding:15px 16px; font:inherit; font-size:1.05rem; color:var(--ink); outline:none; transition:border .2s,box-shadow .2s; }
+  input:focus { border-color:var(--lav); box-shadow:0 0 0 3px #b9a7ff22; }
+  button { border:0; border-radius:14px; padding:13px 18px; font:inherit; font-weight:800; cursor:pointer; transition:transform .15s,filter .15s,opacity .15s; }
+  button:hover { filter:brightness(1.08); transform:translateY(-1px); } button:active { transform:translateY(1px); }
+  .primary { color:#20172f; background:linear-gradient(110deg,var(--pink),var(--lav)); box-shadow:0 8px 22px #b9a7ff22; }
+  .secondary { color:var(--ink); background:#ffffff0d; border:1px solid var(--line); }
+  .hint { min-height:20px; margin-top:8px; color:var(--muted); font-size:.78rem; }
+  .visual { margin:26px 0 18px; background:#151126a8; border:1px solid var(--line); border-radius:20px; padding:20px 16px 14px; overflow:hidden; }
+  .visual-head { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:18px; }
+  .visual-head strong { font-size:.9rem; } .visual-head span { color:var(--muted); font-size:.75rem; }
+  .bars { height:138px; display:flex; align-items:center; justify-content:center; gap:clamp(4px,1.4vw,10px); }
+  .bar { width:clamp(10px,4.5vw,28px); max-width:28px; height:var(--h); min-height:12px; border-radius:9px 9px 5px 5px; background:var(--c); opacity:.72; transform-origin:center bottom; transition:height .25s ease,opacity .2s,filter .2s; box-shadow:0 0 20px color-mix(in srgb,var(--c),transparent 75%); }
+  .bar.active { opacity:1; filter:brightness(1.22); animation:bounce .42s ease-in-out infinite alternate; }
+  @keyframes bounce { from{transform:scaleY(.72)} to{transform:scaleY(1.08)} }
+  .notes { display:flex; justify-content:center; flex-wrap:wrap; gap:7px; margin-top:15px; }
+  .note { border:1px solid var(--line); border-radius:9px; padding:6px 9px; color:#e9e1ff; font-size:.72rem; background:#ffffff08; }
+  .sound-picker { margin:0 0 18px; }
+  .sound-picker-heading { display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+  .sound-picker-heading strong { font-size:.88rem; }
+  .sound-picker-heading span { color:var(--muted); font-size:.74rem; }
+  .sound-styles { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+  .style-btn { min-width:0; display:flex; align-items:center; justify-content:center; gap:7px; padding:12px 8px; color:var(--muted); background:#ffffff08; border:1px solid var(--line); border-radius:13px; font-size:.82rem; font-weight:750; }
+  .style-btn.active { color:var(--ink); background:linear-gradient(135deg,#ff9fc81c,#b9a7ff20); border-color:#b9a7ffb0; box-shadow:0 0 0 2px #b9a7ff12 inset; }
+  .style-icon { color:var(--pink); font-size:1.1rem; line-height:1; }
+  .controls { display:flex; gap:10px; flex-wrap:wrap; }
+  .controls button { flex:1; min-width:130px; }
+  .controls .primary { display:flex; align-items:center; justify-content:center; gap:8px; }
+  .smallrow { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:18px; flex-wrap:wrap; }
+  .tempo { color:var(--muted); font-size:.8rem; display:flex; align-items:center; gap:9px; }
+  input[type=range] { accent-color:var(--lav); width:100px; padding:0; box-shadow:none; }
+  .result { text-align:center; margin-top:25px; }
+  .result .big { font-size:1.6rem; font-weight:850; letter-spacing:-.04em; overflow-wrap:anywhere; }
+  .result p { color:var(--muted); margin:6px 0 0; font-size:.82rem; }
+  .share-card-section { margin-top:30px; padding-top:25px; border-top:1px solid var(--line); }
+  .share-card-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin-bottom:16px; }
+  .share-card-heading h2 { margin:7px 0 6px; font-size:1.45rem; letter-spacing:-.04em; }
+  .share-card-heading p { margin:0; color:var(--muted); font-size:.84rem; line-height:1.5; }
+  .card-format { white-space:nowrap; border:1px solid var(--line); border-radius:999px; padding:7px 10px; color:var(--muted); font-size:.7rem; }
+  .card-preview-wrap { width:min(100%,390px); margin:0 auto; border-radius:18px; overflow:hidden; box-shadow:0 18px 45px #08061366; background:#211c39; }
+  #melodyCard { display:block; width:100%; height:auto; }
+  .card-actions { display:flex; gap:10px; margin-top:16px; }
+  .card-actions button { flex:1; }
+  .card-note { text-align:center; color:var(--muted); font-size:.75rem; line-height:1.55; margin:12px auto 0; max-width:430px; }
+  .footer { text-align:center; color:#9188ac; font-size:.75rem; margin:25px 0 0; line-height:1.7; }
+  .footer b { color:#d8cefa; }
+  .toast { position:fixed; bottom:20px; left:50%; transform:translate(-50%,15px); opacity:0; pointer-events:none; background:#f8f5ff;color:#20172f;padding:11px 16px;border-radius:999px;font-size:.85rem;font-weight:750;box-shadow:0 10px 35px #0005;transition:all .25s; }
+  .toast.show { opacity:1; transform:translate(-50%,0); }
+  @media(max-width:520px) { .style-btn{flex-direction:column;gap:5px;padding:10px 4px;font-size:.72rem} body{padding:20px 12px 32px}.top{margin-bottom:34px}.tag{font-size:.68rem}.entry{flex-direction:column}.entry button{width:100%}.card{border-radius:22px}.visual{padding:16px 10px 12px}.bars{height:120px}.controls button{min-width:100%;}.card-actions{flex-direction:column}.share-card-heading h2{font-size:1.25rem}.card-format{font-size:.64rem} }
+  @media(prefers-reduced-motion:reduce) { *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="top">
+    <div class="brand"><div class="logo">♫</div> nymelo</div>
+    <div class="tag">A tiny internet music experiment</div>
+  </header>
+  <section class="hero">
+    <div class="eyebrow">Every name has a sound</div>
+    <h1>Your name.<br><span>Your melody.</span></h1>
+    <p class="sub">Turn a name into a little tune. Type yours, press play, and discover what your name sounds like.</p>
+  </section>
+  <section class="card" aria-label="Name melody maker">
+    <label for="nameInput">What should we turn into music?</label>
+    <div class="entry">
+      <input id="nameInput" maxlength="18" value="Kangana" placeholder="Type a name..." autocomplete="off" aria-describedby="inputHint" />
+      <button class="primary" id="generateBtn">Make my melody ✨</button>
+    </div>
+    <div class="hint" id="inputHint">Letters become notes. Each name gets its own pattern.</div>
+    <div class="visual">
+      <div class="visual-head"><strong id="visualTitle">Kangana's soundwave</strong><span id="status">Ready to play</span></div>
+      <div class="bars" id="bars" aria-label="Animated melody visualization"></div>
+      <div class="notes" id="notes"></div>
+    </div>
+    <div class="sound-picker">
+      <div class="sound-picker-heading">
+        <strong>Choose your sound</strong>
+        <span>Try the same melody in 3 styles</span>
+      </div>
+      <div class="sound-styles" role="group" aria-label="Choose an instrument sound">
+        <button class="style-btn active" data-style="musicbox" aria-pressed="true">
+          <span class="style-icon">✧</span><span>Music Box</span>
+        </button>
+        <button class="style-btn" data-style="piano" aria-pressed="false">
+          <span class="style-icon">♬</span><span>Soft Piano</span>
+        </button>
+        <button class="style-btn" data-style="dreamy" aria-pressed="false">
+          <span class="style-icon">☾</span><span>Dreamy Synth</span>
+        </button>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="primary" id="playBtn">▶ Play my melody</button>
+      <button class="secondary" id="stopBtn">■ Stop</button>
+      <button class="secondary" id="shareBtn">↗ Share my tune</button>
+    </div>
+    <div class="smallrow">
+      <div class="tempo"><span>Slow</span><input id="tempo" type="range" min="130" max="340" value="220" aria-label="Melody speed"><span>Fast</span></div>
+      <button class="secondary" id="downloadBtn" style="padding:9px 12px;font-size:.78rem">↓ Save melody data</button>
+    </div>
+    <div class="result">
+      <div class="big" id="resultName">Kangana ♡</div>
+      <p id="resultText">A melody made just for this name.</p>
+    </div>
+    <section class="share-card-section" aria-labelledby="shareCardHeading">
+      <div class="share-card-heading">
+        <div>
+          <div class="eyebrow">Made to be shared</div>
+          <h2 id="shareCardHeading">Your melody card</h2>
+          <p>Save a story-ready card and show people what your name sounds like.</p>
+        </div>
+        <span class="card-format">1080 × 1350</span>
+      </div>
+      <div class="card-preview-wrap">
+        <canvas id="melodyCard" width="1080" height="1350" aria-label="Preview of your personalised Nymelo melody card"></canvas>
+      </div>
+      <div class="card-actions">
+        <button class="primary" id="downloadCardBtn">↓ Download melody card</button>
+        <button class="secondary" id="shareCardBtn">↗ Share card</button>
+      </div>
+      <p class="card-note">The card is a picture, so it won’t play sound itself. Use “Share my tune” to share a link that opens the playable melody.</p>
+    </section>
+  </section>
+  <p class="footer">Made for curious ears. <b>No account. No downloads. Just press play.</b><br>Choose Music Box, Soft Piano or Dreamy Synth. Sound is generated in your browser using the Web Audio API.</p>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const input = $('nameInput'), barsEl = $('bars'), notesEl = $('notes');
+  const palette = ['#ff9fc8','#b9a7ff','#9ce8d4','#ffd98a'];
+  const scale = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24]; // pentatonic intervals
+  let melody = [], audioCtx = null, activeTimers = [], isPlaying = false, playToken = 0;
+  let currentSoundStyle = "musicbox";
+
+  function hashName(name) {
+    let h = 2166136261;
+    for (const ch of name.toLowerCase()) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  }
+  function makeMelody(raw) {
+    const name = raw.trim();
+    if (!name) return [];
+
+    // A repeatable seed means the same name recreates the same tune.
+    let state = hashName(name) || 1;
+    const rand = () => {
+      state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+      return state / 4294967296;
+    };
+
+    const letters = [...name]
+      .filter(ch => /[\p{L}\p{N}]/u.test(ch))
+      .slice(0, 12);
+
+    if (!letters.length) return [];
+
+    // C-major pentatonic: these notes tend to sound pleasant together.
+    const scaleNotes = [60, 62, 64, 67, 69, 72, 74, 76, 79];
+    const notes = [];
+    let degree = (letters[0].toLowerCase().codePointAt(0) + Math.floor(rand() * 5)) % 5 + 1;
+
+    letters.forEach((ch, i) => {
+      const code = ch.toLowerCase().codePointAt(0);
+
+      if (i > 0) {
+        // Mostly move by nearby scale steps; occasional leaps add variety.
+        const move = rand() < 0.78
+          ? Math.floor(rand() * 5) - 2
+          : (rand() < 0.5 ? -3 : 3);
+
+        degree = Math.max(0, Math.min(scaleNotes.length - 1, degree + move));
+
+        // Let the letter gently influence the note, without making it chaotic.
+        if (code % 4 === 0 && rand() < 0.35) {
+          degree = Math.max(0, Math.min(scaleNotes.length - 1, degree + (code % 2 ? 1 : -1)));
+        }
+      }
+
+      const midi = scaleNotes[degree];
+      const freq = 440 * Math.pow(2, (midi - 69) / 12);
+
+      // A little rhythmic variation: mostly even, with occasional longer notes.
+      const duration = (i === letters.length - 1 || rand() < 0.18) ? 0.38 : 0.24;
+
+      notes.push({
+        letter: ch.toUpperCase(),
+        midi,
+        freq,
+        duration,
+        color: palette[(code + i) % palette.length],
+        beat: i
+      });
+    });
+
+    // Give the phrase a musical landing: finish on C or G.
+    const endingMidi = hashName(name) % 2 === 0 ? 60 : 67;
+    const last = notes[notes.length - 1];
+    last.midi = endingMidi;
+    last.freq = 440 * Math.pow(2, (endingMidi - 69) / 12);
+    last.duration = 0.42;
+
+    return notes;
+  }
+  function noteName(midi) {
+    const names = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+    return names[midi%12] + (Math.floor(midi/12)-1);
+  }
+  function render() {
+    stop();
+    const name = input.value.trim().slice(0,18);
+    input.value = name;
+    melody = makeMelody(name);
+    barsEl.innerHTML = ''; notesEl.innerHTML = '';
+    $('visualTitle').textContent = name ? `${name}'s soundwave` : 'Your soundwave';
+    $('resultName').textContent = name ? `${name} ♡` : 'Your name ♡';
+    $('resultText').textContent = melody.length ? `${melody.length} notes · made from your name` : 'Type a name made of letters or numbers to begin.';
+    melody.forEach((n,i) => {
+      const bar = document.createElement('div');
+      bar.className = 'bar'; bar.style.setProperty('--h', `${24 + ((n.midi*7+i*13)%95)}px`); bar.style.setProperty('--c',n.color);
+      bar.dataset.index = i; barsEl.appendChild(bar);
+      const chip = document.createElement('span'); chip.className = 'note'; chip.textContent = `${n.letter} · ${noteName(n.midi)}`; notesEl.appendChild(chip);
+    });
+    $('playBtn').disabled = !melody.length;
+    $('playBtn').style.opacity = melody.length ? '1' : '.5';
+    if (name) {
+      const url = new URL(location.href);
+      url.searchParams.set('name', name);
+      history.replaceState({}, '', url);
+    } else {
+      const url = new URL(location.href); url.searchParams.delete('name'); history.replaceState({}, '', url);
+    }
+    $('status').textContent = 'Ready to play';
+    drawMelodyCard();
+  }
+  function getAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function pluck(note, when, duration) {
+    const ctx = getAudio(), master = ctx.createGain();
+    const profiles = {
+      musicbox: {
+        partials: [
+          { ratio: 1, type: 'triangle', gain: 1, detune: 0 },
+          { ratio: 2, type: 'sine', gain: .22, detune: 2 },
+          { ratio: 3, type: 'sine', gain: .06, detune: -2 }
+        ],
+        peak: .16, attack: .018, tail: 1.0
+      },
+      piano: {
+        partials: [
+          { ratio: 1, type: 'triangle', gain: 1, detune: 0 },
+          { ratio: 2, type: 'triangle', gain: .20, detune: 0 },
+          { ratio: 3, type: 'sine', gain: .08, detune: 0 },
+          { ratio: 4, type: 'sine', gain: .025, detune: 0 }
+        ],
+        peak: .19, attack: .012, tail: 1.25
+      },
+      dreamy: {
+        partials: [
+          { ratio: 1, type: 'sine', gain: 1, detune: -7 },
+          { ratio: 1.005, type: 'sine', gain: .48, detune: 7 },
+          { ratio: 2, type: 'triangle', gain: .10, detune: 0 }
+        ],
+        peak: .14, attack: .055, tail: 1.55
+      }
+    };
+    const profile = profiles[currentSoundStyle] || profiles.musicbox;
+    const endAt = when + duration * profile.tail;
+
+    master.gain.setValueAtTime(0.0001, when);
+    master.gain.exponentialRampToValueAtTime(profile.peak, when + profile.attack);
+    master.gain.exponentialRampToValueAtTime(0.0001, Math.max(when + profile.attack + .03, endAt));
+    master.connect(ctx.destination);
+
+    profile.partials.forEach(partial => {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.type = partial.type;
+      osc.frequency.setValueAtTime(note.freq * partial.ratio, when);
+      osc.detune.setValueAtTime(partial.detune, when);
+      gain.gain.value = partial.gain;
+      osc.connect(gain);
+      gain.connect(master);
+      osc.start(when);
+      osc.stop(endAt + .04);
+    });
+  }
+  function chooseSoundStyle(style) {
+    if (!['musicbox', 'piano', 'dreamy'].includes(style)) return;
+    stop();
+    currentSoundStyle = style;
+    function getStyleLabel() {
+    return ({ musicbox: 'MUSIC BOX', piano: 'SOFT PIANO', dreamy: 'DREAMY SYNTH' })[currentSoundStyle] || 'MUSIC BOX';
+  }
+  function roundedRect(ctx, x, y, w, h, r) {
+    const radius = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.arcTo(x + w, y, x + w, y + h, radius);
+    ctx.arcTo(x + w, y + h, x, y + h, radius);
+    ctx.arcTo(x, y + h, x, y, radius);
+    ctx.arcTo(x, y, x + w, y, radius);
+    ctx.closePath();
+  }
+  function drawMelodyCard() {
+    const canvas = $('melodyCard');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = 1080, H = 1350;
+    const name = input.value.trim() || 'Your name';
+    const accent = currentSoundStyle === 'piano' ? '#b9a7ff' : currentSoundStyle === 'dreamy' ? '#9ce8d4' : '#ff9fc8';
+    ctx.clearRect(0, 0, W, H);
+
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#241b3d');
+    bg.addColorStop(.52, '#171327');
+    bg.addColorStop(1, '#182b3c');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+    // Soft colour glows and small stars make the card feel like cover art.
+    const glow1 = ctx.createRadialGradient(170, 170, 10, 170, 170, 520);
+    glow1.addColorStop(0, '#ff9fc82c'); glow1.addColorStop(1, '#ff9fc800');
+    ctx.fillStyle = glow1; ctx.fillRect(0, 0, W, H);
+    const glow2 = ctx.createRadialGradient(930, 850, 10, 930, 850, 480);
+    glow2.addColorStop(0, `${accent}30`); glow2.addColorStop(1, `${accent}00`);
+    ctx.fillStyle = glow2; ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = '#ffffff16'; ctx.lineWidth = 2;
+    roundedRect(ctx, 42, 42, W - 84, H - 84, 34); ctx.stroke();
+
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#f8f5ff'; ctx.font = '800 38px system-ui, sans-serif';
+    ctx.fillText('♫  nymelo', 82, 115);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#c9c0e2'; ctx.font = '700 21px system-ui, sans-serif';
+    ctx.fillText('A NAME → A MELODY', W - 82, 111);
+
+    ctx.textAlign = 'left'; ctx.fillStyle = '#9ce8d4'; ctx.font = '800 22px system-ui, sans-serif';
+    ctx.letterSpacing = '5px';
+    ctx.fillText('YOUR PERSONAL SOUND', 84, 230);
+    ctx.letterSpacing = '0px';
+
+    const displayName = name.length > 15 ? name.slice(0, 14) + '…' : name;
+    let nameSize = displayName.length > 10 ? 86 : displayName.length > 7 ? 102 : 120;
+    ctx.font = `850 ${nameSize}px system-ui, sans-serif`;
+    const maxNameWidth = W - 168;
+    while (ctx.measureText(displayName).width > maxNameWidth && nameSize > 54) {
+      nameSize -= 4; ctx.font = `850 ${nameSize}px system-ui, sans-serif`;
+    }
+    const nameGrad = ctx.createLinearGradient(82, 0, W - 82, 0);
+    nameGrad.addColorStop(0, '#ff9fc8'); nameGrad.addColorStop(.52, '#b9a7ff'); nameGrad.addColorStop(1, '#9ce8d4');
+    ctx.fillStyle = nameGrad; ctx.fillText(displayName, 80, 355);
+
+    ctx.fillStyle = '#c9c0e2'; ctx.font = '400 29px system-ui, sans-serif';
+    ctx.fillText('sounds like…', 86, 410);
+
+    // A cover-art waveform generated from the melody notes.
+    const waveTop = 490, waveBottom = 815, count = Math.max(1, melody.length);
+    const gap = 13, totalWidth = W - 190, barW = Math.min(48, (totalWidth - gap * (count - 1)) / count);
+    const actualWidth = count * barW + (count - 1) * gap;
+    const startX = (W - actualWidth) / 2;
+    melody.forEach((note, i) => {
+      const h = 70 + ((note.midi * 13 + i * 29) % 190);
+      const x = startX + i * (barW + gap);
+      const y = waveTop + (waveBottom - waveTop - h) / 2;
+      const barGrad = ctx.createLinearGradient(0, y, 0, y + h);
+      barGrad.addColorStop(0, note.color || accent);
+      barGrad.addColorStop(1, '#b9a7ff');
+      ctx.fillStyle = barGrad;
+      roundedRect(ctx, x, y, barW, h, Math.min(18, barW / 2)); ctx.fill();
+    });
+
+    ctx.textAlign = 'left'; ctx.fillStyle = '#f8f5ff'; ctx.font = '800 24px system-ui, sans-serif';
+    ctx.fillText(`${melody.length} NOTES`, 86, 900);
+    ctx.textAlign = 'right'; ctx.fillStyle = accent; ctx.font = '800 22px system-ui, sans-serif';
+    ctx.fillText(getStyleLabel(), W - 86, 900);
+
+    const noteLabels = melody.slice(0, 8).map(n => noteName(n.midi)).join('  ·  ');
+    ctx.textAlign = 'left'; ctx.fillStyle = '#c9c0e2'; ctx.font = '500 23px system-ui, sans-serif';
+    ctx.fillText(noteLabels + (melody.length > 8 ? '  ·  …' : ''), 86, 955);
+
+    ctx.strokeStyle = '#ffffff20'; ctx.beginPath(); ctx.moveTo(86, 1010); ctx.lineTo(W - 86, 1010); ctx.stroke();
+    ctx.textAlign = 'left'; ctx.fillStyle = '#f8f5ff'; ctx.font = '800 34px system-ui, sans-serif';
+    ctx.fillText('Every name has a sound.', 86, 1080);
+    ctx.fillStyle = '#c9c0e2'; ctx.font = '400 23px system-ui, sans-serif';
+    ctx.fillText('Make your own melody at Nymelo', 86, 1125);
+    ctx.fillStyle = '#9ce8d4'; ctx.font = '700 21px system-ui, sans-serif';
+    const siteText = location.host ? location.host + location.pathname : 'Your name, your melody';
+    ctx.fillText(siteText.slice(0, 55), 86, 1190);
+
+    ctx.textAlign = 'right'; ctx.fillStyle = '#ffffff8c'; ctx.font = '600 18px system-ui, sans-serif';
+    ctx.fillText('MADE WITH NYMELO  ✦', W - 86, 1270);
+  }
+  function canvasBlob(canvas) {
+    return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Could not create image')), 'image/png'));
+  }
+  function safeFileName() {
+    return `nymelo-${(input.value.trim() || 'melody').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-card.png`;
+  }
+  async function downloadMelodyCard() {
+    try {
+      drawMelodyCard();
+      const blob = await canvasBlob($('melodyCard'));
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = safeFileName(); a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast('Your melody card is saved!');
+    } catch (error) {
+      toast('Could not save the card. Try another browser.');
+    }
+  }
+  async function shareMelodyCard() {
+    try {
+      drawMelodyCard();
+      const blob = await canvasBlob($('melodyCard'));
+      const file = new File([blob], safeFileName(), { type: 'image/png' });
+      const url = new URL(location.href);
+      url.searchParams.set('name', input.value.trim() || 'Your name');
+      const shareData = {
+        title: 'My Nymelo melody card',
+        text: `I turned ${input.value.trim() || 'my name'} into a melody on Nymelo. Make yours!`,
+        url: url.href
+      };
+      if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+        await navigator.share({ ...shareData, files: [file] });
+      } else if (navigator.share) {
+        await navigator.share(shareData);
+        toast('Shared your melody link. Download the card to post it as a Story!');
+      } else {
+        await downloadMelodyCard();
+        toast('Card downloaded. Attach it to your post or Story!');
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') toast('Try Download melody card, then share the PNG.');
+    }
+  }
+
+  document.querySelectorAll('.style-btn').forEach(button => {
+      const selected = button.dataset.style === style;
+      button.classList.toggle('active', selected);
+      button.setAttribute('aria-pressed', String(selected));
+    });
+    const labels = { musicbox: 'Music Box', piano: 'Soft Piano', dreamy: 'Dreamy Synth' };
+    $('status').textContent = `${labels[style]} selected`;
+    drawMelodyCard();
+  }
+  function stop() {
+    playToken++;
+    activeTimers.forEach(clearTimeout); activeTimers = [];
+    isPlaying = false;
+    document.querySelectorAll('.bar.active').forEach(el => el.classList.remove('active'));
+    $('status').textContent = 'Ready to play';
+  }
+  async function play() {
+    if (!melody.length) return;
+    stop();
+    const token = playToken;
+    const ctx = getAudio();
+    if (ctx.state === 'suspended') await ctx.resume();
+    isPlaying = true;
+    $('status').textContent = 'Playing your melody ♪';
+    const interval = Number($('tempo').value);
+    const start = ctx.currentTime + 0.06;
+    melody.forEach((note, i) => {
+      const at = start + i * (interval/1000);
+      pluck(note, at, Math.max(.16, Math.min(note.duration || .24, interval/1000 * 1.35)));
+      const timer = setTimeout(() => {
+        if (token !== playToken) return;
+        document.querySelectorAll('.bar.active').forEach(el => el.classList.remove('active'));
+        const bar = barsEl.querySelector(`[data-index="${i}"]`);
+        if (bar) bar.classList.add('active');
+        if (i === melody.length-1) {
+          const endTimer = setTimeout(() => {
+            if (token === playToken) { stop(); $('status').textContent = 'That’s your tune ✨'; }
+          }, interval);
+          activeTimers.push(endTimer);
+        }
+      }, Math.max(0, (at-ctx.currentTime)*1000));
+      activeTimers.push(timer);
+    });
+  }
+  function toast(message) {
+    $('toast').textContent = message; $('toast').classList.add('show');
+    setTimeout(() => $('toast').classList.remove('show'), 2200);
+  }
+  function downloadData() {
+    const data = { project:'Nymelo', name:input.value.trim(), notes:melody.map(n=>({letter:n.letter,note:noteName(n.midi),frequencyHz:Number(n.freq.toFixed(2)),durationSeconds:Number(n.duration.toFixed(2))})), generatedAt:new Date().toISOString(), note:'This JSON stores the melody data, not an audio recording.' };
+    const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `nymelo-${(input.value.trim()||'melody').toLowerCase().replace(/[^a-z0-9]+/g,'-')}.json`; a.click(); URL.revokeObjectURL(a.href);
+    toast('Melody data saved!');
+  }
+  function getStyleLabel() {
+    return ({ musicbox: 'MUSIC BOX', piano: 'SOFT PIANO', dreamy: 'DREAMY SYNTH' })[currentSoundStyle] || 'MUSIC BOX';
+  }
+  function roundedRect(ctx, x, y, w, h, r) {
+    const radius = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.arcTo(x + w, y, x + w, y + h, radius);
+    ctx.arcTo(x + w, y + h, x, y + h, radius);
+    ctx.arcTo(x, y + h, x, y, radius);
+    ctx.arcTo(x, y, x + w, y, radius);
+    ctx.closePath();
+  }
+  function drawMelodyCard() {
+    const canvas = $('melodyCard');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = 1080, H = 1350;
+    const name = input.value.trim() || 'Your name';
+    const accent = currentSoundStyle === 'piano' ? '#b9a7ff' : currentSoundStyle === 'dreamy' ? '#9ce8d4' : '#ff9fc8';
+    ctx.clearRect(0, 0, W, H);
+
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#241b3d');
+    bg.addColorStop(.52, '#171327');
+    bg.addColorStop(1, '#182b3c');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+    // Soft colour glows and small stars make the card feel like cover art.
+    const glow1 = ctx.createRadialGradient(170, 170, 10, 170, 170, 520);
+    glow1.addColorStop(0, '#ff9fc82c'); glow1.addColorStop(1, '#ff9fc800');
+    ctx.fillStyle = glow1; ctx.fillRect(0, 0, W, H);
+    const glow2 = ctx.createRadialGradient(930, 850, 10, 930, 850, 480);
+    glow2.addColorStop(0, `${accent}30`); glow2.addColorStop(1, `${accent}00`);
+    ctx.fillStyle = glow2; ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = '#ffffff16'; ctx.lineWidth = 2;
+    roundedRect(ctx, 42, 42, W - 84, H - 84, 34); ctx.stroke();
+
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#f8f5ff'; ctx.font = '800 38px system-ui, sans-serif';
+    ctx.fillText('♫  nymelo', 82, 115);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#c9c0e2'; ctx.font = '700 21px system-ui, sans-serif';
+    ctx.fillText('A NAME → A MELODY', W - 82, 111);
+
+    ctx.textAlign = 'left'; ctx.fillStyle = '#9ce8d4'; ctx.font = '800 22px system-ui, sans-serif';
+    ctx.letterSpacing = '5px';
+    ctx.fillText('YOUR PERSONAL SOUND', 84, 230);
+    ctx.letterSpacing = '0px';
+
+    const displayName = name.length > 15 ? name.slice(0, 14) + '…' : name;
+    let nameSize = displayName.length > 10 ? 86 : displayName.length > 7 ? 102 : 120;
+    ctx.font = `850 ${nameSize}px system-ui, sans-serif`;
+    const maxNameWidth = W - 168;
+    while (ctx.measureText(displayName).width > maxNameWidth && nameSize > 54) {
+      nameSize -= 4; ctx.font = `850 ${nameSize}px system-ui, sans-serif`;
+    }
+    const nameGrad = ctx.createLinearGradient(82, 0, W - 82, 0);
+    nameGrad.addColorStop(0, '#ff9fc8'); nameGrad.addColorStop(.52, '#b9a7ff'); nameGrad.addColorStop(1, '#9ce8d4');
+    ctx.fillStyle = nameGrad; ctx.fillText(displayName, 80, 355);
+
+    ctx.fillStyle = '#c9c0e2'; ctx.font = '400 29px system-ui, sans-serif';
+    ctx.fillText('sounds like…', 86, 410);
+
+    // A cover-art waveform generated from the melody notes.
+    const waveTop = 490, waveBottom = 815, count = Math.max(1, melody.length);
+    const gap = 13, totalWidth = W - 190, barW = Math.min(48, (totalWidth - gap * (count - 1)) / count);
+    const actualWidth = count * barW + (count - 1) * gap;
+    const startX = (W - actualWidth) / 2;
+    melody.forEach((note, i) => {
+      const h = 70 + ((note.midi * 13 + i * 29) % 190);
+      const x = startX + i * (barW + gap);
+      const y = waveTop + (waveBottom - waveTop - h) / 2;
+      const barGrad = ctx.createLinearGradient(0, y, 0, y + h);
+      barGrad.addColorStop(0, note.color || accent);
+      barGrad.addColorStop(1, '#b9a7ff');
+      ctx.fillStyle = barGrad;
+      roundedRect(ctx, x, y, barW, h, Math.min(18, barW / 2)); ctx.fill();
+    });
+
+    ctx.textAlign = 'left'; ctx.fillStyle = '#f8f5ff'; ctx.font = '800 24px system-ui, sans-serif';
+    ctx.fillText(`${melody.length} NOTES`, 86, 900);
+    ctx.textAlign = 'right'; ctx.fillStyle = accent; ctx.font = '800 22px system-ui, sans-serif';
+    ctx.fillText(getStyleLabel(), W - 86, 900);
+
+    const noteLabels = melody.slice(0, 8).map(n => noteName(n.midi)).join('  ·  ');
+    ctx.textAlign = 'left'; ctx.fillStyle = '#c9c0e2'; ctx.font = '500 23px system-ui, sans-serif';
+    ctx.fillText(noteLabels + (melody.length > 8 ? '  ·  …' : ''), 86, 955);
+
+    ctx.strokeStyle = '#ffffff20'; ctx.beginPath(); ctx.moveTo(86, 1010); ctx.lineTo(W - 86, 1010); ctx.stroke();
+    ctx.textAlign = 'left'; ctx.fillStyle = '#f8f5ff'; ctx.font = '800 34px system-ui, sans-serif';
+    ctx.fillText('Every name has a sound.', 86, 1080);
+    ctx.fillStyle = '#c9c0e2'; ctx.font = '400 23px system-ui, sans-serif';
+    ctx.fillText('Make your own melody at Nymelo', 86, 1125);
+    ctx.fillStyle = '#9ce8d4'; ctx.font = '700 21px system-ui, sans-serif';
+    const siteText = location.host ? location.host + location.pathname : 'Your name, your melody';
+    ctx.fillText(siteText.slice(0, 55), 86, 1190);
+
+    ctx.textAlign = 'right'; ctx.fillStyle = '#ffffff8c'; ctx.font = '600 18px system-ui, sans-serif';
+    ctx.fillText('MADE WITH NYMELO  ✦', W - 86, 1270);
+  }
+  function canvasBlob(canvas) {
+    return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Could not create image')), 'image/png'));
+  }
+  function safeFileName() {
+    return `nymelo-${(input.value.trim() || 'melody').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-card.png`;
+  }
+  async function downloadMelodyCard() {
+    try {
+      drawMelodyCard();
+      const blob = await canvasBlob($('melodyCard'));
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = safeFileName(); a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast('Your melody card is saved!');
+    } catch (error) {
+      toast('Could not save the card. Try another browser.');
+    }
+  }
+  async function shareMelodyCard() {
+    try {
+      drawMelodyCard();
+      const blob = await canvasBlob($('melodyCard'));
+      const file = new File([blob], safeFileName(), { type: 'image/png' });
+      const url = new URL(location.href);
+      url.searchParams.set('name', input.value.trim() || 'Your name');
+      const shareData = {
+        title: 'My Nymelo melody card',
+        text: `I turned ${input.value.trim() || 'my name'} into a melody on Nymelo. Make yours!`,
+        url: url.href
+      };
+      if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+        await navigator.share({ ...shareData, files: [file] });
+      } else if (navigator.share) {
+        await navigator.share(shareData);
+        toast('Shared your melody link. Download the card to post it as a Story!');
+      } else {
+        await downloadMelodyCard();
+        toast('Card downloaded. Attach it to your post or Story!');
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') toast('Try Download melody card, then share the PNG.');
+    }
+  }
+
+  document.querySelectorAll('.style-btn').forEach(button => {
+    button.addEventListener('click', () => chooseSoundStyle(button.dataset.style));
+  });
+  $('generateBtn').addEventListener('click', render);
+  $('playBtn').addEventListener('click', play);
+  $('stopBtn').addEventListener('click', () => { stop(); toast('Melody stopped'); });
+  $('shareBtn').addEventListener('click', async () => {
+    const url = new URL(location.href); url.searchParams.set('name', input.value.trim() || 'Kangana');
+    try {
+      if (navigator.share) await navigator.share({title:'My Nymelo melody',text:`I turned ${input.value.trim() || 'my name'} into a melody on Nymelo. Try yours!`,url:url.href});
+      else if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(url.href); toast('Link copied — share your tune!'); }
+      else { prompt('Copy this link to share your name:',url.href); }
+    } catch(e) { if (e.name !== 'AbortError') toast('Use your browser address bar to copy the link.'); }
+  });
+  $('downloadBtn').addEventListener('click', downloadData);
+  $('downloadCardBtn').addEventListener('click', downloadMelodyCard);
+  $('shareCardBtn').addEventListener('click', shareMelodyCard);
+  input.addEventListener('keydown', e => { if(e.key === 'Enter') render(); });
+  const params = new URLSearchParams(location.search);
+  if (params.has('name')) input.value = params.get('name').slice(0,18);
+  render();
+})();
+</script>
+</body>
+</html>
